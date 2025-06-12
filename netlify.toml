@@ -1,0 +1,12 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  # Set environment variables needed for the build if any
+  # Example: VITE_API_URL = "https://your-api.com"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
