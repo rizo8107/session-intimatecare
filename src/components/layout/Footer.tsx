@@ -37,8 +37,9 @@ const Footer: React.FC = () => {
             <ul className="space-y-2 text-gray-400">
               <li><Link to="/explore" className="hover:text-white transition-colors">Find Experts</Link></li>
               <li><Link to="/auth" className="hover:text-white transition-colors">Become an Expert</Link></li>
+              <li><Link to="/about-us" className="hover:text-white transition-colors">About Us</Link></li>
+              <li><Link to="/services" className="hover:text-white transition-colors">Services & Pricing</Link></li>
               <li><a href="#" className="hover:text-white transition-colors">How it Works</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
             </ul>
           </div>
 
@@ -58,9 +59,10 @@ const Footer: React.FC = () => {
             <h3 className="text-lg font-semibold mb-4">Support</h3>
             <ul className="space-y-2 text-gray-400">
               <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
+              <li><Link to="/contact-us" className="hover:text-white transition-colors">Contact Us</Link></li>
+              <li><Link to="/terms-and-conditions" className="hover:text-white transition-colors">Terms & Conditions</Link></li>
+              <li><Link to="/refund-policy" className="hover:text-white transition-colors">Refunds & Cancellations</Link></li>
+              <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li> { /* Keep as placeholder or create page */}
             </ul>
           </div>
         </div>

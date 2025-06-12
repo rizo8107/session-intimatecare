@@ -12,6 +12,11 @@ import AuthPage from './pages/AuthPage';
 import BookingPage from './pages/BookingPage';
 import BookingConfirmation from './pages/BookingConfirmation';
 import ExplorePage from './pages/ExplorePage';
+import ContactUsPage from './pages/ContactUsPage';
+import TermsAndConditionsPage from './pages/TermsAndConditionsPage';
+import RefundPolicyPage from './pages/RefundPolicyPage';
+import AboutUsPage from './pages/AboutUsPage';
+import ServicesOverviewPage from './pages/ServicesOverviewPage';
 
 function App() {
   return (
@@ -31,6 +36,11 @@ function App() {
               <Route path="/dashboard/user" element={<UserDashboard />} />
               <Route path="/booking/confirmation" element={<BookingConfirmation />} />
               <Route path="/auth" element={<AuthPage />} />
+              <Route path="/contact-us" element={<ContactUsPage />} />
+              <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
+              <Route path="/refund-policy" element={<RefundPolicyPage />} />
+              <Route path="/about-us" element={<AboutUsPage />} />
+              <Route path="/services" element={<ServicesOverviewPage />} />
             </Routes>
           </main>
           <Footer />
