@@ -6,7 +6,6 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { toast } from 'react-hot-toast';
 import { cashfreeService } from '../services/cashfree';
-import { ensureCashfreeLoaded } from '../utils/cashfreeLoader';
 
 // Define extended time slot interface
 interface TimeSlot {
@@ -30,18 +29,18 @@ const BookingPage = () => {
   const [emailError, setEmailError] = useState<string>('');
   const [showInlineCheckout, setShowInlineCheckout] = useState(false);
 
-  // Ensure Cashfree SDK is loaded
+  // Initialize Cashfree SDK
   useEffect(() => {
-    const loadCashfree = async () => {
+    const initializeCashfree = async () => {
       try {
-        await ensureCashfreeLoaded();
+        await cashfreeService.initialize();
         setCashfreeLoaded(true);
       } catch (error) {
-        console.error('Failed to load Cashfree SDK:', error);
+        console.error('Failed to initialize Cashfree SDK:', error);
         toast.error('Payment system is currently unavailable. Please try again later.');
       }
     };
-    loadCashfree();
+    initializeCashfree();
   }, []);
 
   const { data: expert, loading: expertLoading, error: expertError } = useExpert(id);
@@ -132,6 +131,8 @@ const BookingPage = () => {
         status: 'pending' as 'pending',
         total_amount: selectedService.price,
         currency: 'INR',
+        payment_order_id: generatedOrderId,  // Store the payment order ID
+        payment_status: 'pending',          // Initialize payment status
         ...(user?.id ? { client_id: user.id } : {}),
         client_notes: !user ? `Guest booking - Email: ${customerEmail}` : undefined
       };

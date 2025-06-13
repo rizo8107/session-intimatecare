@@ -1,4 +1,4 @@
-import { ensureCashfreeLoaded } from '../utils/cashfreeLoader';
+import { load, CashfreeOptions } from '@cashfreepayments/cashfree-js';
 
 export interface CashfreeConfig {
   appId: string;
@@ -54,8 +54,19 @@ export interface PaymentResult {
 }
 
 class CashfreeService {
-  private cashfree: any = null;
+  private cashfree: any = null; // This will store the loaded Cashfree instance
   private config: CashfreeConfig;
+  
+  /**
+   * Generates a unique order ID for Cashfree payments
+   * @returns A unique order ID string
+   */
+  generateOrderId(): string {
+    // Format: order_<timestamp>_<random>
+    const timestamp = Date.now();
+    const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+    return `order_${timestamp}_${random}`;
+  }
 
   constructor() {
     const mode = (import.meta.env.VITE_CASHFREE_MODE as 'sandbox' | 'production') || 'sandbox'; // Default to sandbox if not set
@@ -75,22 +86,20 @@ class CashfreeService {
   async initialize() {
     if (!this.cashfree) {
       try {
-        // Use the utility function to ensure Cashfree is loaded
-        await ensureCashfreeLoaded();
-        
-        // Now initialize Cashfree
-        this.cashfree = window.Cashfree({
-          mode: this.config.mode
+        console.log(`Initializing Cashfree SDK with mode: ${this.config.mode}`);
+        // Use the load function from the package
+        this.cashfree = await load({
+          mode: this.config.mode as CashfreeOptions['mode'] // Cast to satisfy CashfreeOptions type
         });
-        console.log(`Cashfree SDK initialized successfully.`);
+        console.log('Cashfree SDK initialized successfully using @cashfreepayments/cashfree-js.');
         console.log(`Frontend SDK Mode: ${this.config.mode}`);
-        console.log(`Frontend SDK App ID being used (from .env): ${this.config.appId ? 'found' : 'NOT FOUND'}`);
+        // App ID is not directly used by the 'load' function for client-side SDK, but good to log its presence
+        console.log(`VITE_CASHFREE_APP_ID (from .env): ${this.config.appId ? 'found' : 'NOT FOUND'}`);
       } catch (error) {
-        console.error('Error initializing Cashfree SDK:', error);
+        console.error('Error initializing Cashfree SDK with @cashfreepayments/cashfree-js:', error);
         throw error;
       }
     }
-    
     return this.cashfree;
   }
 
@@ -126,35 +135,53 @@ class CashfreeService {
     if (!container) {
       throw new Error(`Checkout container with id #${containerId} not found`);
     }
+
+    // Ensure Cashfree SDK is initialized via the class method
     await this.initialize();
 
     if (!this.cashfree) {
-      throw new Error('Cashfree SDK not loaded');
+      console.error('Cashfree SDK not initialized before processPayment.');
+      throw new Error('Cashfree SDK not loaded or initialized');
     }
 
     console.log('Processing payment with session ID:', paymentSessionId);
+    console.log('SDK mode is set to:', this.config.mode);
     
+    // Use exact same format as in example for checkout options
     const checkoutOptions = {
       paymentSessionId,
       redirectTarget: container,
       appearance: {
-        width: "100%", // Make it responsive
-      },
+        width: "100%",
+        height: "400px"
+      }
     };
+    
+    console.log('Checkout options:', checkoutOptions);
 
     return new Promise((resolve, reject) => {
       try {
-        this.cashfree.checkout(checkoutOptions)
-          .then((result: PaymentResult) => {
+        // Add a wrapper for better debugging
+        const checkout = async () => {
+          try {
+            const result = await this.cashfree.checkout(checkoutOptions);
             console.log('Cashfree checkout result:', result);
             resolve(result);
-          })
-          .catch((error: any) => {
-            console.error('Cashfree checkout error:', error);
-            reject(error);
-          });
+          } catch (err) {
+            console.error('Error in checkout call:', err);
+            // If specific error about mode, try to log information
+            const errorString = String(err);
+            if (errorString.includes('mode')) {
+              console.error('Mode related error. Current mode:', this.config.mode);
+              console.error('SDK instance:', this.cashfree);
+            }
+            reject(err);
+          }
+        };
+        
+        checkout();
       } catch (error) {
-        console.error('Error in Cashfree checkout:', error);
+        console.error('Error in Cashfree checkout outer block:', error);
         reject(error);
       }
     });
@@ -182,9 +209,7 @@ class CashfreeService {
     }
   }
 
-  generateOrderId(): string {
-    return `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  }
+  // generateOrderId is implemented at the top of this class
 
   calculatePlatformFee(amount: number, feePercentage: number = 10): number {
     return Math.round((amount * feePercentage) / 100 * 100) / 100;
